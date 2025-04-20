@@ -72,16 +72,16 @@ export function TodoFilters({ onFilterChange, availableTags }: TodoFiltersProps)
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-4 ease-in-out duration-300">
       <div className="flex flex-wrap gap-4">
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[200px] py-2">
           <Input
             placeholder="Search todos..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
-        
+
         <Select value={priority} onValueChange={handlePriorityChange}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Priority" />

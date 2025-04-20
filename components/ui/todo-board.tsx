@@ -6,7 +6,6 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -14,17 +13,15 @@ import {
   DragEndEvent,
   DragOverEvent,
 } from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { defaultColumns, Column, Status, Priority } from '@/lib/types';
 import { Todo } from '@/lib/db';
 import { todoService } from '@/lib/services/todo-service';
 import { TodoColumn } from './todo-column';
 import { TodoItem } from './todo-item';
 import { Button } from './button';
-import { Plus } from 'lucide-react';
+import { Plus, ListFilter } from 'lucide-react';
 import { TodoDialog } from './todo-dialog';
 import { TodoFilters } from './todo-filters';
-import { ThemeToggle } from '../theme-toggle';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,6 +46,7 @@ export function TodoBoard() {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [columns] = useState<Column[]>(defaultColumns);
   const [initialStatus, setInitialStatus] = useState<Status | undefined>();
   const [filters, setFilters] = useState<Filters>({
@@ -58,7 +56,7 @@ export function TodoBoard() {
   });
   const [optimisticTodos, setOptimisticTodos] = useState<Todo[]>([]);
   const [dragOverId, setDragOverId] = useState<string | number | null>(null);
-  
+
   const allTodos = useLiveQuery(
     () => todoService.getAll(),
     []
@@ -77,14 +75,14 @@ export function TodoBoard() {
   }, [allTodos]);
 
   const filteredTodos = optimisticTodos?.filter(todo => {
-    const matchesSearch = !filters.search || 
+    const matchesSearch = !filters.search ||
       todo.title.toLowerCase().includes(filters.search.toLowerCase()) ||
       todo.description?.toLowerCase().includes(filters.search.toLowerCase()) ||
       todo.tags.some(tag => tag.toLowerCase().includes(filters.search.toLowerCase()));
 
     const matchesPriority = !filters.priority || todo.priority === filters.priority;
 
-    const matchesTags = filters.tags.length === 0 || 
+    const matchesTags = filters.tags.length === 0 ||
       filters.tags.every(tag => todo.tags.includes(tag));
 
     return matchesSearch && matchesPriority && matchesTags;
@@ -139,7 +137,7 @@ export function TodoBoard() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (!over || !filteredTodos) {
       setActiveId(null);
       setIsDragging(false);
@@ -149,7 +147,7 @@ export function TodoBoard() {
 
     const activeId = Number(active.id);
     const overId = over.id;
-    
+
     try {
       const activeTodo = filteredTodos.find(t => t.id === activeId);
       if (!activeTodo) {
@@ -162,7 +160,7 @@ export function TodoBoard() {
       if (typeof overId === 'string') {
         const newStatus = overId as Status;
         const todosInNewStatus = filteredTodos.filter(t => t.status === newStatus);
-        
+
         // Calculate new order based on position
         let newOrder;
         if (todosInNewStatus.length === 0) {
@@ -172,15 +170,15 @@ export function TodoBoard() {
         }
 
         // Optimistically update the UI
-        setOptimisticTodos(prevTodos => 
-          prevTodos.map(todo => 
-            todo.id === activeId 
+        setOptimisticTodos(prevTodos =>
+          prevTodos.map(todo =>
+            todo.id === activeId
               ? { ...todo, status: newStatus, order: newOrder }
               : todo
           )
         );
 
-        await todoService.update(activeId, { 
+        await todoService.update(activeId, {
           status: newStatus,
           order: newOrder
         });
@@ -219,15 +217,15 @@ export function TodoBoard() {
         // If moving to a different column
         if (activeTodo.status !== newStatus) {
           // Optimistically update the UI
-          setOptimisticTodos(prevTodos => 
-            prevTodos.map(todo => 
-              todo.id === activeId 
+          setOptimisticTodos(prevTodos =>
+            prevTodos.map(todo =>
+              todo.id === activeId
                 ? { ...todo, status: newStatus, order: newOrder }
                 : todo
             )
           );
 
-          await todoService.update(activeId, { 
+          await todoService.update(activeId, {
             status: newStatus,
             order: newOrder
           });
@@ -238,7 +236,7 @@ export function TodoBoard() {
         // If moving within the same column
         const todosInStatus = filteredTodos.filter(t => t.status === activeTodo.status);
         const activeIndex = todosInStatus.findIndex(t => t.id === activeId);
-        
+
         if (activeIndex === -1) {
           console.error('Active todo not found in status:', activeTodo.status);
           toast.error('Failed to move todo');
@@ -251,18 +249,18 @@ export function TodoBoard() {
           for (let i = activeIndex + 1; i <= overIndex; i++) {
             const todoToUpdate = todosInStatus[i];
             if (!todoToUpdate || !todoToUpdate.id) continue;
-            
+
             // Optimistically update the UI
-            setOptimisticTodos(prevTodos => 
-              prevTodos.map(todo => 
-                todo.id === todoToUpdate.id 
+            setOptimisticTodos(prevTodos =>
+              prevTodos.map(todo =>
+                todo.id === todoToUpdate.id
                   ? { ...todo, order: todo.order - 1 }
                   : todo
               )
             );
-            
-            await todoService.update(todoToUpdate.id, { 
-              order: todoToUpdate.order - 1 
+
+            await todoService.update(todoToUpdate.id, {
+              order: todoToUpdate.order - 1
             });
           }
         } else {
@@ -270,31 +268,31 @@ export function TodoBoard() {
           for (let i = overIndex; i < activeIndex; i++) {
             const todoToUpdate = todosInStatus[i];
             if (!todoToUpdate || !todoToUpdate.id) continue;
-            
+
             // Optimistically update the UI
-            setOptimisticTodos(prevTodos => 
-              prevTodos.map(todo => 
-                todo.id === todoToUpdate.id 
+            setOptimisticTodos(prevTodos =>
+              prevTodos.map(todo =>
+                todo.id === todoToUpdate.id
                   ? { ...todo, order: todo.order + 1 }
                   : todo
               )
             );
-            
-            await todoService.update(todoToUpdate.id, { 
-              order: todoToUpdate.order + 1 
+
+            await todoService.update(todoToUpdate.id, {
+              order: todoToUpdate.order + 1
             });
           }
         }
 
         // Update the active todo
-        setOptimisticTodos(prevTodos => 
-          prevTodos.map(todo => 
-            todo.id === activeId 
+        setOptimisticTodos(prevTodos =>
+          prevTodos.map(todo =>
+            todo.id === activeId
               ? { ...todo, order: newOrder }
               : todo
           )
         );
-        
+
         await todoService.update(activeId, { order: newOrder });
         toast.success('Todo reordered successfully');
       }
@@ -342,33 +340,87 @@ export function TodoBoard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Jotit</h1>
-              <p className="text-muted-foreground mt-1">
-                Organize and track your tasks efficiently
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Task
-              </Button>
-              <ThemeToggle />
-            </div>
+      {/* Modern, Integrated Header */}
+      <div className="container mx-auto px-4 pt-6 pb-4">
+        {/* Title Row with Add Button */}
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`
+                rounded-full
+                border-primary/70
+                ${showFilters ? 'bg-primary/10 text-primary' : ''}
+                transition-colors
+              `}
+            >
+              <ListFilter className="h-4 w-4" />
+            </Button>
+
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Task
+            </Button>
           </div>
-          <div>
+        </div>
+
+        {/* Filters (Expandable) */}
+        {showFilters && (
+          <div className="
+            bg-background/40 dark:bg-background/30
+            backdrop-blur-sm
+            border border-border
+            rounded-xl p-3 mb-4
+            animate-in fade-in  duration-400
+          ">
             <TodoFilters
               onFilterChange={setFilters}
               availableTags={availableTags ?? []}
             />
           </div>
+        )}
+
+        {/* Stats Bar */}
+        <div className="
+          flex items-center justify-between
+          bg-background/60 dark:bg-background/40
+          border border-border
+          rounded-lg px-4 py-2
+          text-sm text-muted-foreground
+        ">
+          <div>
+            <span className="font-medium text-foreground">{filteredTodos.length}</span> tasks
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div>
+              <span className="font-medium text-foreground">
+                {filteredTodos.filter(t => t.status === 'done').length}
+              </span> completed
+            </div>
+            <div>
+              <span className="font-medium text-foreground">
+                {filteredTodos.filter(t => t.status === 'in-progress').length}
+              </span> in progress
+            </div>
+            <div>
+              <span className="font-medium text-foreground">
+                {filteredTodos.filter(t => t.priority === 'urgent' || t.priority === 'high').length}
+              </span> high priority
+            </div>
+          </div>
         </div>
-      </header>
-      
-      <main className="flex-1 container mx-auto p-4 min-h-screen">
+      </div>
+
+      {/* Main Content - Keep your existing DnD implementation */}
+      <main className="flex-1 container mx-auto px-4 pb-8">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -377,7 +429,7 @@ export function TodoBoard() {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          <div className="flex gap-6">
+          <div className="flex gap-6 overflow-x-auto pb-4">
             {columns.map(column => (
               <TodoColumn
                 key={column.id}
