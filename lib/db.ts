@@ -18,6 +18,12 @@ export interface Todo {
   deadline?: Date;
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+  createdAt: Date;
+}
+
 export interface Column {
   id: Status;
   title: string;
@@ -27,11 +33,13 @@ export interface Column {
 
 export class TodoDB extends Dexie {
   todos!: Table<Todo>;
+  tags!: Table<Tag>;
 
   constructor() {
     super('TodoDB');
-    this.version(1).stores({
+    this.version(2).stores({
       todos: '++id, status, priority, tags, order, deadline',
+      tags: '++id, name, createdAt'
     });
   }
 }

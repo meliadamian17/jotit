@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './select';
-import { Priority } from '@/lib/db';
+import { Priority, Tag } from '@/lib/db';
 import { X } from 'lucide-react';
 import { Badge } from './badge';
 
@@ -20,7 +20,7 @@ interface TodoFiltersProps {
     priority: Priority | '';
     tags: string[];
   }) => void;
-  availableTags: string[];
+  availableTags: Tag[];
 }
 
 type PriorityFilter = Priority | 'all';
@@ -111,12 +111,12 @@ export function TodoFilters({ onFilterChange, availableTags }: TodoFiltersProps)
         <div className="flex flex-wrap gap-2">
           {availableTags.map((tag) => (
             <Badge
-              key={tag}
-              variant={selectedTags.includes(tag) ? "default" : "outline"}
+              key={tag.id}
+              variant={selectedTags.includes(tag.name) ? "default" : "outline"}
               className="cursor-pointer"
-              onClick={() => handleTagToggle(tag)}
+              onClick={() => handleTagToggle(tag.name)}
             >
-              {tag}
+              {tag.name}
             </Badge>
           ))}
         </div>

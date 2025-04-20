@@ -105,7 +105,7 @@ export function TodoBoard() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Todo Board</h1>
+        <h1 className="text-2xl font-bold">Jotit</h1>
         <Button onClick={() => setIsDialogOpen(true)}>
           Add Todo
         </Button>

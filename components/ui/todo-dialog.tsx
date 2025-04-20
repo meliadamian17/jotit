@@ -8,11 +8,12 @@ import {
   Calendar as CalendarIcon,
   Plus,
   X,
-  Tag,
+  Tag as TagIcon,
   Link as LinkIcon,
   MessageSquare
 } from 'lucide-react';
 import { db, Todo, Status, Priority } from '@/lib/db';
+import { Tag } from '@/lib/types';
 import { Button } from './button';
 import { Calendar } from './calendar';
 import {
@@ -21,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from './dialog';
 import {
   Form,
@@ -51,6 +53,7 @@ import { useState, useEffect } from 'react';
 import { Badge } from './badge';
 import Link from 'next/link';
 import { todoService } from '@/lib/services/todo-service';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -74,6 +77,12 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
   const [newComment, setNewComment] = useState('');
   const [links, setLinks] = useState<{ title: string; url: string }[]>(todo?.links ?? []);
   const [comments, setComments] = useState<{ id: number; text: string; createdAt: Date }[]>(todo?.comments ?? []);
+  
+  const availableTags = useLiveQuery(
+    () => todoService.getAllTags(),
+    []
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: todo ?? {
@@ -103,12 +112,13 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
     }
   }, [open, initialStatus, todo, form]);
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     const tag = newTag.trim().toLowerCase();
     if (!tag) return;
     
     const currentTags = form.getValues('tags');
     if (!currentTags.includes(tag)) {
+      await todoService.addTag(tag);
       form.setValue('tags', [...currentTags, tag]);
     }
     setNewTag('');
@@ -197,6 +207,9 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
             <DialogTitle>
               {todo ? 'Edit Todo' : 'Create Todo'}
             </DialogTitle>
+            <DialogDescription>
+              {todo ? 'Edit your existing todo item' : 'Create a new todo item'}
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
@@ -333,7 +346,7 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
                 <div className="flex flex-wrap gap-2 mb-2">
                   {form.watch('tags').map((tag) => (
                     <Badge key={tag} variant="secondary" className="gap-1">
-                      <Tag className="w-3 h-3" />
+                      <TagIcon className="w-3 h-3" />
                       {tag}
                       <button
                         type="button"
@@ -356,6 +369,25 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
+                {availableTags && availableTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {availableTags.map((tag: Tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant={form.watch('tags').includes(tag.name) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          const currentTags = form.getValues('tags');
+                          if (!currentTags.includes(tag.name)) {
+                            form.setValue('tags', [...currentTags, tag.name]);
+                          }
+                        }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-4">

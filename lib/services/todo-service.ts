@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { Todo, Status, Priority } from '@/lib/types';
+import { Todo, Status, Priority, Tag } from '@/lib/types';
 
 export interface UpdateTodoInput {
   title?: string;
@@ -18,6 +18,21 @@ export const todoService = {
     return db.todos.orderBy('order').toArray();
   },
 
+  async getAllTags() {
+    return db.tags.orderBy('name').toArray();
+  },
+
+  async addTag(name: string) {
+    const existingTag = await db.tags.where('name').equals(name).first();
+    if (existingTag) return existingTag;
+
+    return db.tags.add({
+      id: Date.now(),
+      name,
+      createdAt: new Date()
+    });
+  },
+
   async getByStatus(status: Status) {
     return db.todos.where('status').equals(status).toArray();
   },
@@ -29,6 +44,9 @@ export const todoService = {
       .toArray();
     
     const maxOrder = Math.max(...todosInStatus.map(t => t.order), -1);
+    
+    // Add any new tags to the tags table
+    await Promise.all(todo.tags.map(tag => this.addTag(tag)));
     
     return db.todos.add({
       id: Date.now(),
@@ -51,6 +69,11 @@ export const todoService = {
       
       const maxOrder = Math.max(...todosInNewStatus.map(t => t.order), -1);
       updates.order = maxOrder + 1;
+    }
+
+    // Add any new tags to the tags table
+    if (updates.tags) {
+      await Promise.all(updates.tags.map(tag => this.addTag(tag)));
     }
 
     await db.todos.update(id, {
@@ -83,27 +106,25 @@ export const todoService = {
     });
   },
 
-  async addTag(id: number, tag: string) {
+  async addComment(id: number, text: string) {
     const todo = await db.todos.get(id);
     if (!todo) throw new Error('Todo not found');
-    
-    const normalizedTag = tag.toLowerCase().trim();
-    if (todo.tags.includes(normalizedTag)) {
-      throw new Error('Tag already exists');
-    }
 
     await db.todos.update(id, {
-      tags: [...todo.tags, normalizedTag],
+      comments: [
+        ...todo.comments,
+        { id: Date.now(), text, createdAt: new Date() }
+      ],
       updatedAt: new Date(),
     });
   },
 
-  async removeTag(id: number, tag: string) {
+  async removeComment(id: number, commentId: number) {
     const todo = await db.todos.get(id);
     if (!todo) throw new Error('Todo not found');
 
     await db.todos.update(id, {
-      tags: todo.tags.filter(t => t !== tag),
+      comments: todo.comments.filter(c => c.id !== commentId),
       updatedAt: new Date(),
     });
   },
@@ -124,29 +145,6 @@ export const todoService = {
 
     await db.todos.update(id, {
       links: todo.links.filter((_, i) => i !== index),
-      updatedAt: new Date(),
-    });
-  },
-
-  async addComment(id: number, text: string) {
-    const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
-
-    await db.todos.update(id, {
-      comments: [
-        ...todo.comments,
-        { id: Date.now(), text, createdAt: new Date() }
-      ],
-      updatedAt: new Date(),
-    });
-  },
-
-  async removeComment(id: number, commentId: number) {
-    const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
-
-    await db.todos.update(id, {
-      comments: todo.comments.filter(c => c.id !== commentId),
       updatedAt: new Date(),
     });
   },

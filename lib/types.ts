@@ -13,6 +13,12 @@ export interface Todo {
   deadline?: Date;
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+  createdAt: Date;
+}
+
 export interface TodoStore {
   todos: Todo[];
   lastSynced?: string;
@@ -25,6 +31,7 @@ export interface Column {
   id: Status;
   title: string;
   color: string;
+  order: number;
 }
 
 export const defaultColumns: Column[] = [
@@ -32,25 +39,30 @@ export const defaultColumns: Column[] = [
     id: 'backlog',
     title: 'Backlog',
     color: '#003973',
+    order: 0
   },
   {
     id: 'in-progress',
     title: 'In Progress',
     color: '#4776E6',
+    order: 1
   },
   {
     id: 'blocked',
     title: 'Blocked',
     color: '#dc2626',
+    order: 2
   },
   {
     id: 'done',
     title: 'Done',
     color: '#22c55e',
+    order: 3
   },
   {
     id: 'canceled',
     title: 'Canceled',
     color: '#6b7280',
+    order: 4
   },
 ];
