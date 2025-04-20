@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { DndContext, DragEndEvent, closestCenter, DragOverlay, useSensor, PointerSensor } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
-import { TodoColumn } from '@/components/todo-column';
-import { TodoDialog } from '@/components/todo-dialog';
-import { TodoItem } from '@/components/todo-item';
+import { TodoColumn } from '@/components/ui/todo-column';
+import { TodoDialog } from '@/components/ui/todo-dialog';
+import { TodoItem } from '@/components/ui/todo-item';
 import { Status } from '@/types/status';
 import { Todo } from '@/types/todo';
 
