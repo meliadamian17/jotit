@@ -33,6 +33,8 @@ export function Navbar() {
   const { user } = useUser()
   const { signOut } = useAuth()
 
+  type user = typeof user
+
   return (
     <header className="w-full flex justify-center py-4">
       <nav
@@ -86,7 +88,7 @@ export function Navbar() {
                 ) : (
                   <AvatarFallback className="text-primary">
                     {user.firstName?.[0] ??
-                      user.emailAddresses[0].email[0]}
+                      user.emailAddresses[0].emailAddress}
                   </AvatarFallback>
                 )}
               </Avatar>
