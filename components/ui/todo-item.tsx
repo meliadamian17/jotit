@@ -9,24 +9,10 @@ import { format } from 'date-fns';
 import {
   Calendar,
   Link as LinkIcon,
-  MessageSquare,
   Tag,
-  Pencil,
-  Trash2,
-  MoreVertical,
 } from 'lucide-react';
 import { Badge } from './badge';
-import { Button } from './button';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from './card';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent } from './dialog';
 import { TodoView } from './todo-view';
 import { toast } from 'sonner';
 import { db } from '@/lib/db';
@@ -52,7 +38,6 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragTimeoutRef = useRef<NodeJS.Timeout>();
-  const clickTimeoutRef = useRef<NodeJS.Timeout>();
   const mouseDownTimeRef = useRef<number>(0);
 
   const {
@@ -81,7 +66,7 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
 
   const handleMouseDown = (e: React.MouseEvent) => {
     mouseDownTimeRef.current = Date.now();
-    
+
     // Start drag after delay
     dragTimeoutRef.current = setTimeout(() => {
       const event = new MouseEvent('mousedown', {
@@ -97,7 +82,7 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current);
     }
-    
+
     // Only open dialog if it was a quick click
     if (Date.now() - mouseDownTimeRef.current < DRAG_DELAY) {
       setIsViewOpen(true);
@@ -145,8 +130,8 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
                 todo.priority === 'urgent'
                   ? 'destructive'
                   : todo.priority === 'high'
-                  ? 'default'
-                  : 'secondary'
+                    ? 'default'
+                    : 'secondary'
               }
             >
               {todo.priority}
@@ -181,7 +166,7 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
       </div>
 
       <Sheet open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <SheetContent side="right" className="w-[800px] sm:max-w-[800px]">
+        <SheetContent className="w-[800px] sm:max-w-[800px]">
           <TodoView
             todo={todo}
             onClose={() => setIsViewOpen(false)}

@@ -162,7 +162,7 @@ export function TodoView({ todo, onClose, onDelete }: TodoViewProps) {
   const addTag = async () => {
     if (!newTag) return;
     try {
-      await todoService.addTag(todo.id!, newTag);
+      await todoService.addTag(newTag);
       setNewTag('');
     } catch (error) {
       if (error instanceof Error) {
@@ -183,7 +183,7 @@ export function TodoView({ todo, onClose, onDelete }: TodoViewProps) {
 
   const addLink = async () => {
     if (!newLinkTitle || !newLinkUrl) return;
-    
+
     let url = newLinkUrl.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = `https://${url}`;

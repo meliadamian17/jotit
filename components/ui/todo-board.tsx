@@ -162,7 +162,7 @@ export function TodoBoard() {
         const todosInNewStatus = filteredTodos.filter(t => t.status === newStatus);
 
         // Calculate new order based on position
-        let newOrder;
+        let newOrder: number;
         if (todosInNewStatus.length === 0) {
           newOrder = 0;
         } else {
@@ -200,7 +200,7 @@ export function TodoBoard() {
         const overIndex = todosInNewStatus.findIndex(t => t.id === overId);
 
         // Calculate new order based on position
-        let newOrder;
+        let newOrder: number;
         if (overIndex === 0) {
           // If dropping at the top
           newOrder = todosInNewStatus[0].order - 1;

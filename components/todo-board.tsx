@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { TodoColumn } from '@/components/ui/todo-column';
 import { TodoDialog } from '@/components/ui/todo-dialog';
 import { TodoItem } from '@/components/ui/todo-item';
-import { Status } from '@/types/status';
+import { STATUSES, Status } from '@/types/status';
 import { Todo } from '@/types/todo';
 
 export function TodoBoard() {
@@ -117,10 +117,10 @@ export function TodoBoard() {
         onDragEnd={handleDragEnd}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.values(Status).map((status) => (
+          {Object.values(STATUSES).map((status) => (
+            //@ts-ignore
             <TodoColumn
-              key={status}
-              status={status}
+              key={status as Status}
               todos={todos.filter(todo => todo.status === status)}
               onStatusChange={handleStatusChange}
               onDelete={handleDelete}

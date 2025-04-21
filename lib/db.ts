@@ -1,7 +1,12 @@
-import Dexie, { Table } from 'dexie';
+import Dexie, { Table } from "dexie";
 
-export type Status = 'backlog' | 'in-progress' | 'blocked' | 'done' | 'canceled';
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+export type Status =
+  | "backlog"
+  | "in-progress"
+  | "blocked"
+  | "done"
+  | "canceled";
+export type Priority = "low" | "medium" | "high" | "urgent";
 
 export interface Todo {
   id: number;
@@ -36,10 +41,10 @@ export class TodoDB extends Dexie {
   tags!: Table<Tag>;
 
   constructor() {
-    super('TodoDB');
+    super("TodoDB");
     this.version(2).stores({
-      todos: '++id, status, priority, tags, order, deadline',
-      tags: '++id, name, createdAt'
+      todos: "++id, status, priority, *tags, order, deadline",
+      tags: "++id, name, createdAt",
     });
   }
 }
@@ -47,9 +52,10 @@ export class TodoDB extends Dexie {
 export const db = new TodoDB();
 
 export const defaultColumns: Column[] = [
-  { id: 'backlog', title: 'Backlog', color: '#003973', order: 0 },
-  { id: 'in-progress', title: 'In Progress', color: '#4776E6', order: 1 },
-  { id: 'blocked', title: 'Blocked', color: '#dc2626', order: 2 },
-  { id: 'done', title: 'Done', color: '#22c55e', order: 3 },
-  { id: 'canceled', title: 'Canceled', color: '#6b7280', order: 4 },
+  { id: "backlog", title: "Backlog", color: "#003973", order: 0 },
+  { id: "in-progress", title: "In Progress", color: "#4776E6", order: 1 },
+  { id: "blocked", title: "Blocked", color: "#dc2626", order: 2 },
+  { id: "done", title: "Done", color: "#22c55e", order: 3 },
+  { id: "canceled", title: "Canceled", color: "#6b7280", order: 4 },
 ];
+

@@ -1,5 +1,5 @@
-import { db } from '@/lib/db';
-import { Todo, Status, Priority, Tag } from '@/lib/types';
+import { db } from "@/lib/db";
+import { Todo, Status, Priority, Tag } from "@/lib/types";
 
 export interface UpdateTodoInput {
   title?: string;
@@ -9,45 +9,67 @@ export interface UpdateTodoInput {
   deadline?: Date;
   order?: number;
   tags?: string[];
-  links?: { title: string; url: string; }[];
-  comments?: { id: number; text: string; createdAt: Date; }[];
+  links?: { title: string; url: string }[];
+  comments?: { id: number; text: string; createdAt: Date }[];
 }
 
 export const todoService = {
   async getAll() {
-    return db.todos.orderBy('order').toArray();
+    return db.todos.orderBy("order").toArray();
   },
 
   async getAllTags() {
-    return db.tags.orderBy('name').toArray();
+    return db.tags.orderBy("name").toArray();
   },
 
   async addTag(name: string) {
-    const existingTag = await db.tags.where('name').equals(name).first();
+    const existingTag = await db.tags.where("name").equals(name).first();
     if (existingTag) return existingTag;
 
     return db.tags.add({
       id: Date.now(),
       name,
-      createdAt: new Date()
+      createdAt: new Date(),
+    });
+  },
+
+  async removeTag(todoId: number, tagName: string) {
+    await db.transaction("rw", db.todos, db.tags, async () => {
+      const todo = await db.todos.get(todoId);
+      if (!todo) throw new Error(`Todo ${todoId} not found`);
+      const newTags = todo.tags.filter((t) => t !== tagName);
+      await db.todos.update(todoId, {
+        tags: newTags,
+        updatedAt: new Date(),
+      });
+
+      const stillInUse = await db.todos.where("tags").equals(tagName).count();
+
+      if (stillInUse === 0) {
+        const tagRecord = await db.tags.where("name").equals(tagName).first();
+
+        if (tagRecord) {
+          await db.tags.delete(tagRecord.id);
+        }
+      }
     });
   },
 
   async getByStatus(status: Status) {
-    return db.todos.where('status').equals(status).toArray();
+    return db.todos.where("status").equals(status).toArray();
   },
 
-  async create(todo: Omit<Todo, 'id' | 'order' | 'updatedAt'>) {
+  async create(todo: Omit<Todo, "id" | "order" | "updatedAt">) {
     const todosInStatus = await db.todos
-      .where('status')
+      .where("status")
       .equals(todo.status)
       .toArray();
-    
-    const maxOrder = Math.max(...todosInStatus.map(t => t.order), -1);
-    
+
+    const maxOrder = Math.max(...todosInStatus.map((t) => t.order), -1);
+
     // Add any new tags to the tags table
-    await Promise.all(todo.tags.map(tag => this.addTag(tag)));
-    
+    await Promise.all(todo.tags.map((tag) => this.addTag(tag)));
+
     return db.todos.add({
       id: Date.now(),
       ...todo,
@@ -58,22 +80,22 @@ export const todoService = {
 
   async update(id: number, updates: UpdateTodoInput) {
     const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
+    if (!todo) throw new Error("Todo not found");
 
     // If status is changing, update order
     if (updates.status && updates.status !== todo.status) {
       const todosInNewStatus = await db.todos
-        .where('status')
+        .where("status")
         .equals(updates.status)
         .toArray();
-      
-      const maxOrder = Math.max(...todosInNewStatus.map(t => t.order), -1);
+
+      const maxOrder = Math.max(...todosInNewStatus.map((t) => t.order), -1);
       updates.order = maxOrder + 1;
     }
 
     // Add any new tags to the tags table
     if (updates.tags) {
-      await Promise.all(updates.tags.map(tag => this.addTag(tag)));
+      await Promise.all(updates.tags.map((tag) => this.addTag(tag)));
     }
 
     await db.todos.update(id, {
@@ -90,15 +112,15 @@ export const todoService = {
 
   async updateOrder(id: number, newStatus: Status) {
     const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
+    if (!todo) throw new Error("Todo not found");
 
     const todosInNewStatus = await db.todos
-      .where('status')
+      .where("status")
       .equals(newStatus)
       .toArray();
-    
-    const maxOrder = Math.max(...todosInNewStatus.map(t => t.order), -1);
-    
+
+    const maxOrder = Math.max(...todosInNewStatus.map((t) => t.order), -1);
+
     await db.todos.update(id, {
       status: newStatus,
       order: maxOrder + 1,
@@ -108,12 +130,12 @@ export const todoService = {
 
   async addComment(id: number, text: string) {
     const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
+    if (!todo) throw new Error("Todo not found");
 
     await db.todos.update(id, {
       comments: [
         ...todo.comments,
-        { id: Date.now(), text, createdAt: new Date() }
+        { id: Date.now(), text, createdAt: new Date() },
       ],
       updatedAt: new Date(),
     });
@@ -121,17 +143,17 @@ export const todoService = {
 
   async removeComment(id: number, commentId: number) {
     const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
+    if (!todo) throw new Error("Todo not found");
 
     await db.todos.update(id, {
-      comments: todo.comments.filter(c => c.id !== commentId),
+      comments: todo.comments.filter((c) => c.id !== commentId),
       updatedAt: new Date(),
     });
   },
 
-  async addLink(id: number, link: { title: string; url: string; }) {
+  async addLink(id: number, link: { title: string; url: string }) {
     const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
+    if (!todo) throw new Error("Todo not found");
 
     await db.todos.update(id, {
       links: [...todo.links, link],
@@ -141,11 +163,12 @@ export const todoService = {
 
   async removeLink(id: number, index: number) {
     const todo = await db.todos.get(id);
-    if (!todo) throw new Error('Todo not found');
+    if (!todo) throw new Error("Todo not found");
 
     await db.todos.update(id, {
       links: todo.links.filter((_, i) => i !== index),
       updatedAt: new Date(),
     });
   },
-}; 
+};
+
