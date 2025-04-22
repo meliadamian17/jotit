@@ -119,10 +119,11 @@ export function TodoDetails({ todo, onUpdate }: TodoDetailsProps) {
               placeholder="Add a comment..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              className="flex-1"
+              className="flex-1 min-h-[80px] break-words"
+              maxLength={500}
             />
-            <Button onClick={handleAddComment}>
-              <Plus className="w-4 h-4" />
+            <Button variant="outline" className="shrink-0" onClick={handleAddComment}>
+              Add
             </Button>
           </div>
         </div>
@@ -173,13 +174,15 @@ export function TodoDetails({ todo, onUpdate }: TodoDetailsProps) {
               placeholder="Link title"
               value={newLink.title}
               onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-              className="flex-1"
+              className="flex-1 break-words"
+              maxLength={100}
             />
             <Input
               placeholder="URL"
               value={newLink.url}
               onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-              className="flex-1"
+              className="flex-1 break-words"
+              maxLength={500}
             />
             <Button onClick={handleAddLink}>
               <Plus className="w-4 h-4" />

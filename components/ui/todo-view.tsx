@@ -108,7 +108,8 @@ function EditableField({ value, onSave, multiline, placeholder }: EditableFieldP
           }
         }}
         placeholder={placeholder}
-        className="min-h-[100px]"
+        maxLength={500}
+        className="min-h-[100px] break-words resize-none"
       />
     ) : (
       <Input
@@ -126,6 +127,8 @@ function EditableField({ value, onSave, multiline, placeholder }: EditableFieldP
           }
         }}
         placeholder={placeholder}
+        maxLength={100}
+        className="break-words"
       />
     );
   }
@@ -134,7 +137,7 @@ function EditableField({ value, onSave, multiline, placeholder }: EditableFieldP
     <div
       onClick={() => setIsEditing(true)}
       className={cn(
-        'rounded-md px-3 py-2 hover:bg-accent/50 cursor-text min-h-[40px]',
+        'rounded-md px-3 py-2 hover:bg-accent/50 cursor-text min-h-[40px] break-words line-clamp-2',
         !value && 'text-muted-foreground italic'
       )}
     >
@@ -226,8 +229,16 @@ export function TodoView({ todo, onClose, onDelete }: TodoViewProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between pb-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-4 pb-4">
+        <div className="flex flex-col gap-2">
+          <EditableField
+            value={todo.title}
+            onSave={(value) => updateTodo({ title: value })}
+            placeholder="Add a title..."
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={todo.status}
             onValueChange={(value: TodoStatus) => updateTodo({ status: value })}
@@ -262,30 +273,18 @@ export function TodoView({ todo, onClose, onDelete }: TodoViewProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
 
-        <div className="flex items-left gap-2 px-12">
-          <Button variant="outline" size="sm" onClick={onDelete}>
-            Delete
-          </Button>
-          {/* <Button variant="outline" size="sm" onClick={onClose}>
-            Close
-          </Button> */}
+          <div className="flex items-center gap-2 ml-auto">
+            <Button variant="outline" size="sm" onClick={onDelete}>
+              Delete
+            </Button>
+          </div>
         </div>
       </div>
 
       <ScrollArea className="flex-1 -mx-6 px-6">
         <div className="space-y-6 py-1 px-1">
           <div>
-            <EditableField
-              value={todo.title}
-              onSave={(value) => updateTodo({ title: value })}
-              placeholder="Add a title..."
-            />
-          </div>
-
-          <div className='px-1'>
-            <h4 className="text-sm font-medium mb-2">Description</h4>
             <EditableField
               value={todo.description || ''}
               onSave={(value) => updateTodo({ description: value })}

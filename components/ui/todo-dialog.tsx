@@ -56,8 +56,12 @@ import { todoService } from '@/lib/services/todo-service';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 const formSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
+  description: z.string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
   status: z.enum(['backlog', 'in-progress', 'blocked', 'done', 'canceled'] as const),
   priority: z.enum(['low', 'medium', 'high', 'urgent'] as const),
   deadline: z.date().optional(),
@@ -221,7 +225,12 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Todo title" {...field} />
+                      <Input 
+                        placeholder="Todo title" 
+                        {...field} 
+                        maxLength={100}
+                        className="break-words"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -238,6 +247,8 @@ export function TodoDialog({ open, onOpenChange, todo, initialStatus }: TodoDial
                       <Textarea
                         placeholder="Describe your todo..."
                         {...field}
+                        maxLength={500}
+                        className="min-h-[100px] break-words"
                       />
                     </FormControl>
                     <FormMessage />

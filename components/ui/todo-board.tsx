@@ -7,6 +7,7 @@ import {
   DragOverlay,
   closestCorners,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragStartEvent,
@@ -91,7 +92,12 @@ export function TodoBoard() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 55,
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 0,
         tolerance: 5,
       },
     })
@@ -428,6 +434,8 @@ export function TodoBoard() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
+          modifiers={[]}
+          autoScroll={false}
         >
           <div className="flex gap-6 overflow-x-auto pb-4">
             {columns.map(column => (

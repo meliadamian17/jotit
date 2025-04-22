@@ -58,40 +58,34 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
   const style = transform ? {
     transform: CSS.Transform.toString(transform),
     transition,
-  } : undefined;
+    touchAction: 'none',
+  } : {
+    touchAction: 'none',
+  };
 
   useEffect(() => {
     setIsDragging(isDndDragging);
   }, [isDndDragging]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     mouseDownTimeRef.current = Date.now();
-
-    // Start drag after delay
-    dragTimeoutRef.current = setTimeout(() => {
-      const event = new MouseEvent('mousedown', {
-        clientX: e.clientX,
-        clientY: e.clientY,
-        bubbles: true,
-      });
-      e.target.dispatchEvent(event);
-    }, DRAG_DELAY);
   };
 
-  const handleMouseUp = () => {
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
-    }
-
-    // Only open dialog if it was a quick click
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
     if (Date.now() - mouseDownTimeRef.current < DRAG_DELAY) {
       setIsViewOpen(true);
     }
   };
 
-  const handleMouseMove = () => {
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseDownTimeRef.current = Date.now();
+  };
+
+  const handleMouseUp = () => {
+    if (Date.now() - mouseDownTimeRef.current < DRAG_DELAY) {
+      setIsViewOpen(true);
     }
   };
 
@@ -121,9 +115,12 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
           !isDragging && 'cursor-grab hover:bg-accent/50'
         )}
         onClick={() => !isDragging && setIsViewOpen(true)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={(e) => e.preventDefault()}
       >
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-medium leading-none">{todo.title}</h3>
+          <h3 className="text-sm font-medium leading-none line-clamp-2 break-words min-w-0 flex-1">{todo.title}</h3>
           {todo.priority && (
             <Badge
               variant={
@@ -133,6 +130,7 @@ export function TodoItem({ todo, overlay, onStatusChange, onDelete }: TodoItemPr
                     ? 'default'
                     : 'secondary'
               }
+              className="shrink-0"
             >
               {todo.priority}
             </Badge>
